@@ -1,5 +1,4 @@
 <?php require_once ("../resources/config.php");?>
-
 <?php include(TEMPLATE_FRONT.DS."header.php") ?>
 
 <?php
@@ -21,13 +20,11 @@
             $query=query("SELECT * FROM products WHERE product_id=".escape_string($_GET['id'])."");
             confirm($query);
             while($row=fetch_array($query)):
-
-
     ?>
 <div class="row">
 
     <div class="col-md-7">
-       <img class="img-responsive" src="<?php echo $row["product_image"];?>" alt="">
+       <img class="img-responsive" src="../resources/<?php echo display_image($row["product_image"]);?>" alt="">
 
     </div>
 
@@ -58,7 +55,7 @@
    
     <form action="">
         <div class="form-group">
-            <input type="submit" class="btn btn-primary" value="ADD TO CART">
+            <a href="../resources/cart.php?add=<?php echo $row["product_id"];?>" class="btn btn-primary">ADD</a>
         </div>
     </form>
 

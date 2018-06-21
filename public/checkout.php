@@ -1,21 +1,8 @@
 <?php require_once ("../resources/config.php");?>
-<?php require_once("cart.php"); ?>
 <?php include(TEMPLATE_FRONT.DS."header.php") ?>
-
-<?php
-if(isset($_SESSION['product_1'])){
-
-    echo $_SESSION['item_total'];
-
-}
-
-?>
-
-
 
     <!-- Page Content -->
     <div class="container">
-
 
 <!-- /.row --> 
 
@@ -28,6 +15,7 @@ if(isset($_SESSION['product_1'])){
     <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post">
         <input type="hidden" name="cmd" value="_cart">
         <input type="hidden" name="business" value="zhangtuo332-facilitator@gmail.com">
+        <input type="hidden" name="currency_code" value="US">
     <table class="table table-striped">
         <thead>
           <tr>
@@ -39,12 +27,10 @@ if(isset($_SESSION['product_1'])){
           </tr>
         </thead>
         <tbody>
-           <?php cart(); ?>
+           <?php cart();?>
         </tbody>
     </table>
-        <input type="image" name="upload"
-               src="https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif"
-               alt="PayPal - The safer, easier way to pay online">
+        <?php echo show_paypal(); ?>
 </form>
 
 

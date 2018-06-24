@@ -52,12 +52,65 @@ function fetch_array($result){
 function get_products(){
     $query=query("SELECT * FROM products WHERE product_quantity>=1");
     confirm($query);
-    while($row=fetch_array($query)){
+    $rows=mysqli_num_rows($query);
+    if(isset($_GET['page'])){
+        $page=preg_replace('#[^0-9]#','',$_GET['page']);
+    }else{
+        $page=1;
+    }
+    $perPage=3;
+    $lastPage=ceil($rows/$perPage);
+    if($page<1){
+        $page=1;
+    }elseif($page>$lastPage){
+        $page=$lastPage;
+    }
+    $middleNumbers="";
+    $sub1=$page-1;
+    $sub2=$page-2;
+    $add1=$page+1;
+    $add2=$page+2;
+    if($page==1){
+        $middleNumbers .='<li class="page-item active"><a>' .$page. '</a><li>';
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$add1.'">' .$add1. '</a><li>';
+
+    }elseif($page==$lastPage){
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$sub1.'">' .$sub1. '</a><li>';
+        $middleNumbers .='<li class="page-item active"><a>' .$page. '</a><li>';
+    }elseif($page>2 && $page<($lastPage-1)){
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$sub2.'">' .$sub2. '</a><li>';
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$sub1.'">' .$sub1. '</a><li>';
+        $middleNumbers .='<li class="page-item active"><a>' .$page. '</a><li>';
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$add1.'">' .$add1. '</a><li>';
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$add2.'">' .$add2. '</a><li>';
+
+    }elseif ($page>1&&$page<$lastPage){
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$sub1.'">' .$sub1. '</a><li>';
+        $middleNumbers .='<li class="page-item active"><a>' .$page. '</a><li>';
+        $middleNumbers .='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$add1.'">' .$add1. '</a><li>';
+    }
+    $limit='LIMIT ' . ($page-1)*$perPage. ',' .$perPage;
+
+
+    $query2=query("SELECT * FROM products $limit");
+    confirm($query2);
+    $outputPagination="";
+    if($page!=1){
+        $prev=$page-1;
+        $outputPagination.='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$prev.'">Back</a><li>';
+    }
+    $outputPagination.=$middleNumbers;
+    if($page!=$lastPage){
+        $next=$page+1;
+        $outputPagination.='<li class="page-item"><a class="page-link" href="'.$_SERVER['PHP_SELF'].'?page='.$next.'">Next</a><li>';
+    }
+
+    while($row=fetch_array($query2)){
         $product_image=display_image($row["product_image"]);
         $product=<<<DELIMETER
         <div class="col-sm-4 col-lg-4 col-md-4">
                         <div class="thumbnail">
-                            <a href="item.php?id={$row["product_id"]}"><img src="../resources/{$product_image}" alt=""></a>
+                            <a href="item.php?id={$row["product_id"]}"><img style="height:90px" src="../resources/{$product_image}" alt=""></a>
                             <div class="caption">
                                 <h4 class="pull-right">&#36;{$row["product_price"]}</h4>
                                 <h4><a href="item.php?id={$row['product_id']}">{$row["product_title"]}</a>
@@ -72,8 +125,8 @@ function get_products(){
 
 DELIMETER;
         echo $product;
-
     }
+    echo "<div class='text-center lastfooter'><ul class='pagination'>{$outputPagination}</ul></div>";
 }
 function get_categories(){
     $query=query("SELECT * FROM categories");
@@ -436,5 +489,92 @@ DELIMETER;
     }
 
 }
+/***************************Get Slides Function***************************/
+function add_slides(){
 
+    if(isset($_POST["add_slide"])){
+
+        $slide_title=escape_string($_POST["slide_title"]);
+        $slide_image=$_FILES["file"]["name"];
+        $slide_image_loc=$_FILES['file']['tmp_name'];
+        if(empty($slide_title)||empty($slide_image)){
+            echo "<p class='bg-danger'>This field cannot be empty</p>";
+        }else{
+            move_uploaded_file($slide_image_loc,UPLOAD_DIRECTORY.DS.$slide_image);
+            $query=query("INSERT INTO slides(slide_title,slide_image)VALUES('{$slide_title}','{$slide_image}')");
+            confirm($query);
+            set_message("slides add");
+            redirect("index.php?slides");
+        }
+    }
+
+
+}
+function get_current_slide_in_admin(){
+    $query=query("SELECT * FROM slides ORDER BY slide_id DESC LIMIT 1");
+    confirm($query);
+    while($row=fetch_array($query)){
+        $slide_image=display_image($row['slide_image']);
+        $slides_active_admin=<<<DELIMETER
+          
+               <img class="img-responsive" src="../../resources/{$slide_image}" alt="">
+          
+DELIMETER;
+        echo $slides_active_admin;
+
+    }
+
+
+
+}
+
+function get_active_slide(){
+    $query=query("SELECT * FROM slides ORDER BY slide_id DESC LIMIT 1");
+    confirm($query);
+    while($row=fetch_array($query)){
+        $slide_image=display_image($row['slide_image']);
+        $slides_active=<<<DELIMETER
+          <div class="item active">
+               <img class="slide-image" src="../resources/{$slide_image}" alt="">
+          </div>
+DELIMETER;
+        echo $slides_active;
+
+    }
+
+}
+function get_slides(){
+    $query=query("SELECT * FROM slides");
+    confirm($query);
+    while($row=fetch_array($query)){
+        $slide_image=display_image($row['slide_image']);
+        $slides=<<<DELIMETER
+          <div class="item">
+               <img class="slide-image" src="../resources/{$slide_image}" alt="">
+          </div>
+DELIMETER;
+        echo $slides;
+
+    }
+
+}
+function get_slide_thumbnails()
+{
+    $query = query("SELECT * FROM slides ORDER BY slide_id ASC");
+    confirm($query);
+    while ($row = fetch_array($query)) {
+        $slide_image = display_image($row['slide_image']);
+        $slides_active_admin = <<<DELIMETER
+          <div class="col-xs-6 col_md-3 image_container">
+          <a href="index.php?delete_slide_id={$row['slide_id']}">
+          <img class="img-responsive slide_image" src="../../resources/{$slide_image}" alt="">
+          </a>
+          <div class="caption">
+          <p>{$row['slide_title']}</p>
+          </div>
+DELIMETER;
+        echo $slides_active_admin;
+
+    }
+}
 ?>

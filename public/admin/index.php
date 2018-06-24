@@ -45,8 +45,14 @@ if(!isset($_SESSION["username"])){
                 if(isset($_GET["reports"])){
                     include(TEMPLATE_BACK ."/reports.php");
                 }
+                if(isset($_GET["slides"])){
+                    include(TEMPLATE_BACK ."/slides.php");
+                }
                 if(isset($_GET["delete_order_id"])){
                     include(TEMPLATE_BACK ."/delete_order.php");
+                }
+                if(isset($_GET["delete_slide_id"])){
+                    include(TEMPLATE_BACK ."/delete_slide.php");
                 }
                 ?>
 
